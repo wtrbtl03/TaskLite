@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Task Manager</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      form {
+        margin-bottom: 20px;
+      }
+      ul {
+        list-style-type: none;
+        padding: 0;
+      }
+      li {
+        margin: 10px 0;
+        padding: 10px;
+        border: 1px solid #ccc;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      input,
+      button {
+        padding: 10px;
+        margin: 5px 0;
+      }
+      label {
+        margin-left: 10px;
+      }
+      .task-details {
+        flex-grow: 1;
+      }
+      .task-actions {
+        display: flex;
+        gap: 10px;
+      }
+    </style>
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        fetchTasks();
+
+        document
+          .getElementById("taskForm")
+          .addEventListener("submit", function (e) {
+            e.preventDefault();
+            createTask();
+          });
+      });
+
+      function fetchTasks() {
+        fetch("/task/all/")
+          .then((response) => response.json())
+          .then((tasks) => {
+            const tasksList = document.getElementById("tasksList");
+            tasksList.innerHTML = "";
+            tasks.sort((a, b) => a.completed - b.completed);
+            tasks.forEach((task) => {
+              renderTask(task);
+            });
+          });
+      }
+
+      function renderTask(task) {
+        const tasksList = document.getElementById("tasksList");
+        const taskItem = document.createElement("li");
+        taskItem.setAttribute("data-task-id", task.task_id); // Change to data-task-id
+        taskItem.innerHTML = `
+                      <div class="task-details">
+                          <input type="text" value="${
+                            task.title
+                          }" onchange="updateTaskField('${
+          task.task_id
+        }', 'title', this.value)">
+                          <input type="text" value="${
+                            task.description || ""
+                          }" onchange="updateTaskField('${
+          task.task_id
+        }', 'description', this.value)">
+                          <input type="date" value="${
+                            task.due_date || ""
+                          }" onchange="updateTaskField('${
+          task.task_id
+        }', 'due_date', this.value)">
+                          <input type="checkbox" ${
+                            task.completed ? "checked" : ""
+                          } onchange="toggleTaskCompletion('${
+          task.task_id
+        }', this.checked)">
+                      </div>
+                      <div class="task-actions">
+                          <button onclick="saveTask('${
+                            task.task_id
+                          }')">Save Changes</button>
+                          <button onclick="deleteTask('${
+                            task.task_id
+                          }')">Delete</button>
+                      </div>
+                  `;
+        tasksList.appendChild(taskItem);
+      }
+
+      function createTask() {
+        const title = document.getElementById("title").value;
+        const description = document.getElementById("description").value || "";
+        const due_date = document.getElementById("due_date").value || null; // Use null if empty
+
+        fetch("/task/new/", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: JSON.stringify({
+            title: title,
+            description: description,
+            due_date: due_date,
+          }),
+        })
+          .then((response) => response.json())
+          .then((task) => {
+            renderTask(task);
+            document.getElementById("taskForm").reset();
+          })
+          .catch((error) => console.error("Error:", error));
+      }
+
+      function updateTaskField(task_id, field, value) {
+        const taskItem = document.querySelector(
+          `li[data-task-id="${task_id}"]`
+        ); // Change to data-task-id
+        taskItem.dataset[field] = value;
+      }
+
+      function toggleTaskCompletion(task_id, completed) {
+        updateTaskField(task_id, "completed", completed);
+      }
+
+      function saveTask(task_id) {
+        const taskItem = document.querySelector(
+          `li[data-task-id="${task_id}"]`
+        );
+        if (!taskItem) {
+          console.error(`Task item with task_id ${task_id} not found.`);
+          return;
+        }
+
+        const titleInput = taskItem.querySelector(
+          'input[type="text"][data-field="title"]'
+        );
+        const descriptionInput = taskItem.querySelector(
+          'input[type="text"][data-field="description"]'
+        );
+        const dueDateInput = taskItem.querySelector(
+          'input[type="date"][data-field="due_date"]'
+        );
+        const completedCheckbox = taskItem.querySelector(
+          'input[type="checkbox"][data-field="completed"]'
+        );
+
+        if (
+          !titleInput ||
+          !descriptionInput ||
+          !dueDateInput ||
+          !completedCheckbox
+        ) {
+          console.error("Required input elements not found in task item.");
+          console.log("Task item:", taskItem);
+          console.log("Title input:", titleInput);
+          console.log("Description input:", descriptionInput);
+          console.log("Due Date input:", dueDateInput);
+          console.log("Completed checkbox:", completedCheckbox);
+          return;
+        }
+
+        const title = titleInput.value;
+        const description = descriptionInput.value;
+        const due_date = dueDateInput.value;
+        const completed = completedCheckbox.checked;
+
+        fetch(`/task/${task_id}/update/`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+          body: JSON.stringify({
+            title: title,
+            description: description,
+            due_date: due_date,
+            completed: completed,
+          }),
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error("Network response was not ok");
+            }
+            return response.json();
+          })
+          .then((updatedTask) => {
+            // Update task fields directly in the DOM
+            titleInput.value = updatedTask.title;
+            descriptionInput.value = updatedTask.description || "";
+            dueDateInput.value = updatedTask.due_date || "";
+            completedCheckbox.checked = updatedTask.completed;
+
+            console.log("Task updated successfully:", updatedTask);
+          })
+          .catch((error) => {
+            console.error("Error updating task:", error);
+          });
+      }
+
+      function deleteTask(task_id) {
+        fetch(`/task/${task_id}/delete/`, {
+          method: "DELETE",
+          headers: {
+            "X-CSRFToken": getCookie("csrftoken"),
+          },
+        })
+          .then((response) => response.json())
+          .then((result) => {
+            fetchTasks();
+          });
+      }
+
+      function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== "") {
+          const cookies = document.cookie.split(";");
+          for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === name + "=") {
+              cookieValue = decodeURIComponent(
+                cookie.substring(name.length + 1)
+              );
+              break;
+            }
+          }
+        }
+        return cookieValue;
+      }
+    </script>
+  </head>
+  <body>
+    <h1>Task Manager</h1>
+    <form id="taskForm">
+      <input type="text" id="title" placeholder="Title" required />
+      <input type="text" id="description" placeholder="Description" />
+      <input type="date" id="due_date" placeholder="Due Date" />
+      <button type="submit">Add Task</button>
+    </form>
+    <ul id="tasksList"></ul>
+  </body>
+</html>

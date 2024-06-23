@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Management</title>
+    {% load static %}
+    <link rel="stylesheet" type="text/css" href="{% static 'style.css' %}">
+    <script src="{% static 'works_script.js' %}"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Task Management</h1>
+
+        <!-- Form to add a new task -->
+        <form id="task-form">
+            <label for="task-title">Title:</label>
+            <input type="text" id="task-title" required>
+            <label for="task-description">Description:</label>
+            <textarea id="task-description"></textarea>
+            <label for="task-due-date">Due Date:</label>
+            <input type="date" id="task-due-date">
+            <button type="submit">Add Task</button>
+        </form>
+
+        <!-- Task list -->
+        <div id="task-list">
+            <!-- Task items will be dynamically generated here -->
+        </div>
+    </div>
+
+</body>
+</html>

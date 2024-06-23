@@ -1,0 +1,75 @@
+/* Custom styles for Task Management app */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to right, #f3c6e0, #a8e6cf); /* Gradient colors */
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.container {
+    width: 90%;
+    max-width: 800px; /* Adjust max-width as needed */
+    padding: 20px;
+    background: transparent; /* Transparent background */
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+form {
+    margin-bottom: 20px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+form label {
+    display: block;
+    margin-bottom: 5px;
+    color: #333;
+    width: 100%;
+}
+
+form input, form textarea, form button {
+    width: calc(100% - 20px); /* Adjust width to accommodate space between items */
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+#task-list {
+    display: grid;
+    gap: 20px;
+}
+
+.task-item {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%; /* Ensure each task card takes full width initially */
+    max-width: 600px; /* Limit max-width of each task card */
+    margin: 0 auto; /* Center-align the task cards */
+}
+
+.task-item input, .task-item textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 1em;
+}

@@ -58,6 +58,7 @@ def update_task(request, task_id):
         })
     else:
         return JsonResponse({'error': 'Method not allowed'}, status=405)
+    
 @csrf_exempt
 def delete_task(request, task_id):
     task = get_object_or_404(Task, task_id=task_id)
