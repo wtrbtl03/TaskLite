@@ -46,98 +46,109 @@ document.addEventListener('DOMContentLoaded', () => {
 
         tasks.forEach(task => {
             const taskItem = document.createElement('div');
-            taskItem.className = `task-item bg-white rounded-lg shadow-md p-4 flex items-start space-x-4 mb-4 ${task.completed ? 'bg-green-100' : ''}`;
+            taskItem.className = `task-item p-4 mb-4 rounded-lg shadow-md flex items-start space-x-4 ${task.completed ? 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 opacity-50 text-white' : 'bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-white'}`;
             taskItem.innerHTML = `
-                <input type="checkbox" ${task.completed ? 'checked' : ''} data-id="${task.task_id}" class="mt-1 form-checkbox h-5 w-5 text-blue-600 task-status">
+                <input type="checkbox" ${task.completed ? 'checked' : ''} data-id="${task.task_id}" class="task-status mt-1 form-checkbox h-5 w-5 text-blue-600">
                 <div class="flex-grow">
-                    <input type="text" value="${task.title}" data-id="${task.task_id}" class="editable-input task-title hidden font-semibold mb-2">
-                    <textarea data-id="${task.task_id}" class="editable-textarea task-description hidden text-gray-600 mb-2">${task.description}</textarea>
-                    <input type="date" value="${task.due_date || ''}" data-id="${task.task_id}" class="editable-input task-due-date hidden text-sm text-gray-500 mb-2">
-                    <p class="task-title-display font-semibold mb-2">${task.title}</p>
-                    <p class="task-description-display text-gray-600 mb-2">${task.description}</p>
-                    <p class="task-due-date-display text-sm text-gray-500 mb-2">Due: ${task.due_date || 'N/A'}</p>
-                    <button data-id="${task.task_id}" class="edit-task bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition duration-300">Edit</button>
-                    <button data-id="${task.task_id}" class="save-task bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300 hidden">Save</button>
-                    <button data-id="${task.task_id}" class="delete-task bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-300">Delete</button>
+                    <h3 class="font-semibold">${task.title}</h3>
+                    <p class="text-gray-200">${task.description}</p>
+                    <p class="text-sm text-gray-300">Due: ${task.due_date}</p>
                 </div>
             `;
+
+            if (!task.completed) {
+                taskItem.innerHTML += `
+                    <button data-id="${task.task_id}" class="edit-task bg-blue-500 text-white px-4 py-2 rounded-md">Edit</button>
+                    <button data-id="${task.task_id}" class="delete-task bg-red-500 text-white px-4 py-2 rounded-md">Delete</button>
+                `;
+            }
+
+            // Edit task event listener
+            const editButton = taskItem.querySelector('.edit-task');
+            if (editButton) {
+                editButton.addEventListener('click', () => editTask(task)); // Ensure editTask function is correctly implemented
+            }
+
+            // Delete task event listener
+            const deleteButton = taskItem.querySelector('.delete-task');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', async () => {
+                    await deleteTask(task.task_id);
+                    fetchTasks();
+                });
+            }
 
             taskList.appendChild(taskItem);
         });
 
-        // Add event listeners for checkboxes
+        // Add event listener for checkboxes
         document.querySelectorAll('.task-status').forEach(checkbox => {
             checkbox.addEventListener('change', async (event) => {
                 const taskId = event.target.getAttribute('data-id');
                 const task = tasks.find(t => t.task_id === taskId);
                 task.completed = event.target.checked;
 
-                await fetch(`/task/${taskId}/update/`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(task),
-                });
-
-                fetchTasks();
-            });
-        });
-
-        // Add event listeners for edit buttons
-        document.querySelectorAll('.edit-task').forEach(button => {
-            button.addEventListener('click', (event) => {
-                const taskId = event.target.getAttribute('data-id');
-                const taskItem = event.target.closest('.task-item');
-                taskItem.querySelector('.task-title').classList.remove('hidden');
-                taskItem.querySelector('.task-description').classList.remove('hidden');
-                taskItem.querySelector('.task-due-date').classList.remove('hidden');
-                taskItem.querySelector('.save-task').classList.remove('hidden');
-                taskItem.querySelector('.edit-task').classList.add('hidden');
-                taskItem.querySelector('.task-title-display').classList.add('hidden');
-                taskItem.querySelector('.task-description-display').classList.add('hidden');
-                taskItem.querySelector('.task-due-date-display').classList.add('hidden');
-            });
-        });
-
-        // Add event listeners for save buttons
-        document.querySelectorAll('.save-task').forEach(button => {
-            button.addEventListener('click', async (event) => {
-                const taskId = event.target.getAttribute('data-id');
-                const titleInput = document.querySelector(`.task-title[data-id="${taskId}"]`);
-                const descriptionInput = document.querySelector(`.task-description[data-id="${taskId}"]`);
-                const dueDateInput = document.querySelector(`.task-due-date[data-id="${taskId}"]`);
-
-                const updatedTask = {
-                    title: titleInput.value,
-                    description: descriptionInput.value,
-                    due_date: dueDateInput.value || null,
-                    completed: document.querySelector(`.task-status[data-id="${taskId}"]`).checked,
-                };
-
-                await fetch(`/task/${taskId}/update/`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(updatedTask),
-                });
-
-                fetchTasks();
-            });
-        });
-
-        // Add event listeners for delete buttons
-        document.querySelectorAll('.delete-task').forEach(button => {
-            button.addEventListener('click', async (event) => {
-                const taskId = event.target.getAttribute('data-id');
-
-                await fetch(`/task/${taskId}/delete/`, {
-                    method: 'DELETE',
-                });
-
+                await updateTask(task);
                 fetchTasks();
             });
         });
     }
+
+    async function editTask(task) {
+        // Populate edit form fields
+        document.getElementById('edit-task-id').value = task.task_id;
+        document.getElementById('edit-task-title').value = task.title;
+        document.getElementById('edit-task-description').value = task.description;
+        document.getElementById('edit-task-due-date').value = task.due_date || '';
+
+        // Show edit popup
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const modalContent = document.getElementById('modal-content');
+        modalBackdrop.classList.remove('hidden');
+        modalContent.classList.remove('hidden');
+    }
+
+    async function updateTask(task) {
+        await fetch(`/task/${task.task_id}/update/`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(task),
+        });
+    }
+
+    async function deleteTask(taskId) {
+        await fetch(`/task/${taskId}/delete/`, {
+            method: 'DELETE',
+        });
+    }
+
+    // Event listener for closing modal
+    document.getElementById('modal-cancel-edit').addEventListener('click', () => {
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const modalContent = document.getElementById('modal-content');
+        modalBackdrop.classList.add('hidden');
+        modalContent.classList.add('hidden');
+    });
+
+    // Event listener for saving edited task
+    document.getElementById('modal-save-task').addEventListener('click', async () => {
+        const taskId = document.getElementById('edit-task-id').value;
+        const updatedTask = {
+            task_id: taskId,
+            title: document.getElementById('edit-task-title').value,
+            description: document.getElementById('edit-task-description').value,
+            due_date: document.getElementById('edit-task-due-date').value || null,
+        };
+
+        await updateTask(updatedTask);
+        fetchTasks();
+
+        // Close modal
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const modalContent = document.getElementById('modal-content');
+        modalBackdrop.classList.add('hidden');
+        modalContent.classList.add('hidden');
+    });
 });

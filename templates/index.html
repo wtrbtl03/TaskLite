@@ -6,45 +6,69 @@
     <title>TaskLite</title>
     {% load static %}
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" type="text/css" href="{% static 'claude.css' %}">
     <script src="{% static 'script.js' %}"></script>
 </head>
-<body class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 min-h-screen flex flex-col items-center py-10r">
+<body class="bg-gradient-to-r from-indigo-300 via-purple-300 to-pink-300 min-h-screen flex flex-col items-center py-10">
     
-    <h1 class="text-4xl text-gray-700 font-bold mb-10 shadow-text">TaskLite</h1>
+    <h1 class="text-5xl font-bold mb-10">
+        <span class="drop-shadow-2xl text-transparent bg-gradient-to-r from-indigo-700 via-purple-700 to-pink-400 bg-clip-text">TaskLite</span>
+    </h1>
 
     <div class="container mx-auto px-4 max-w-3xl">
         <!-- Form to add a new task -->
-        <form id="task-form" class="bg-white rounded-lg shadow-md p-6 mb-8">
+        <form id="task-form" class="bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-opacity-50 rounded-lg shadow-md p-6 mb-8">
             <div class="flex flex-wrap -mx-2">
                 <div class="w-full md:w-1/3 px-2 mb-4">
-                    <label for="task-title" class="block text-gray-700 mb-2">Title:</label>
-                    <input type="text" id="task-title" class="w-full px-3 py-2 border border-gray-300 rounded-md" required>
+                    <label for="task-title" class="block text-white mb-2">Title:</label>
+                    <input type="text" id="task-title" class="w-full px-3 py-2 bg-opacity-25 bg-white border border-gray-300 rounded-md placeholder-white text-white" placeholder="Enter task title" required>
                 </div>
                 <div class="w-full md:w-1/3 px-2 mb-4">
-                    <label for="task-description" class="block text-gray-700 mb-2">Description:</label>
-                    <input type="text" id="task-description" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <label for="task-description" class="block text-white mb-2">Description:</label>
+                    <input type="text" id="task-description" class="w-full px-3 py-2 bg-opacity-25 bg-white border border-gray-300 rounded-md placeholder-white text-white" placeholder="Enter task description">
                 </div>
                 <div class="w-full md:w-1/3 px-2 mb-4">
-                    <label for="task-due-date" class="block text-gray-700 mb-2">Due Date:</label>
-                    <input type="date" id="task-due-date" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                    <label for="task-due-date" class="block text-white mb-2">Due Date:</label>
+                    <input type="date" id="task-due-date" class="w-full px-3 py-2 bg-opacity-25 bg-white border border-gray-300 rounded-md placeholder-white text-white" placeholder="dd-mm-yyyy" style="-webkit-calendar-picker-indicator { filter: invert(1); }">
                 </div>
             </div>
             <button type="submit" class="w-full bg-blue-500 text-white py-2 px-4 rounded-md hover:bg-blue-600 transition duration-300">Add Task</button>
         </form>
 
+
         <!-- Task list -->
         <div id="task-list" class="space-y-4">
             <!-- Example task item (you'll generate these dynamically) -->
-            <div class="task-item bg-white rounded-lg shadow-md p-4 flex items-start space-x-4">
-                <input type="checkbox" class="mt-1 form-checkbox h-5 w-5 text-blue-600">
+            <div class="task-item bg-white rounded-lg shadow-md p-4 flex items-start space-x-4 mb-4">
+                <input type="checkbox" class="mt-1 form-checkbox h-5 w-5 text-blue-600 task-status">
                 <div class="flex-grow">
-                    <h3 class="font-semibold">Task Title</h3>
-                    <p class="text-gray-600">Task description goes here</p>
-                    <p class="text-sm text-gray-500">Due: 2024-06-30</p>
+                    <p class="task-title font-semibold mb-1">Task Title</p>
+                    <p class="task-description text-gray-600 mb-1">Task description goes here</p>
+                    <p class="task-due-date text-sm text-gray-500 mb-2">Due: 2024-06-30</p>
+                    <button class="edit-task bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition duration-300">Edit</button>
+                    <button class="save-task bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300 hidden">Save</button>
+                    <button class="delete-task bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition duration-300">Delete</button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Modal for editing task -->
+    <div id="modal-backdrop" class="hidden fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50"></div>
+    <div id="modal-content" class="hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-opacity-50 rounded-lg shadow-md p-6 z-50" style="width: 50%;">
+        <h2 class="text-lg font-semibold mb-4 text-white">Edit Task</h2>
+        <input type="hidden" id="edit-task-id">
+        <label for="edit-task-title" class="block text-gray-100 mb-2">Title:</label>
+        <input type="text" id="edit-task-title" placeholder="Enter task title" class="w-full px-3 py-2 bg-opacity-25 bg-white border border-gray-300 rounded-md mb-4 placeholder-white text-white">
+        <label for="edit-task-description" class="block text-gray-100 mb-2">Description:</label>
+        <input type="text" id="edit-task-description" placeholder="Enter task description" class="w-full px-3 py-2 bg-opacity-25 bg-white border border-gray-300 rounded-md mb-4 placeholder-white text-white">
+        <label for="edit-task-due-date" class="block text-gray-100 mb-2">Due Date:</label>
+        <input type="date" id="edit-task-due-date" placeholder="Select due date" class="w-full px-3 py-2 bg-opacity-25 bg-white border border-gray-300 rounded-md mb-4 placeholder-white text-white" style="-webkit-calendar-picker-indicator { filter: invert(1); }">
+        <div class="flex justify-end">
+            <button id="modal-save-task" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition duration-300 mr-2">Save</button>
+            <button id="modal-cancel-edit" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400 transition duration-300">Cancel</button>
+        </div>
+    </div>
+
+
 </body>
 </html>
