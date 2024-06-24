@@ -2,7 +2,7 @@
 
 TaskLite is a simple task management application developed using Django. It supports CRUD functionality that allows users to create, edit, delete, and manage tasks. The front-end is designed using Tailwind CSS for a modern and responsive user interface.
 
-![TaskLite Home](./images/TaskLite Home.jpg | width = 200px)
+![TaskLite Home](https://github.com/wtrbtl03/TaskLite/blob/03ce4a93c6310c441ca65b2f778bb5ecfd2b9bfe/images/TaskLite%20Home.jpg)
 
 ## Features
 
@@ -12,7 +12,7 @@ TaskLite is a simple task management application developed using Django. It supp
 - Mark tasks as completed
 - View all tasks in a sorted manner by completion status and due date
 
-![Task Edit Modal](./images/Edit Modal.jpg | width = 200px)
+![Task Edit Modal](https://github.com/wtrbtl03/TaskLite/blob/03ce4a93c6310c441ca65b2f778bb5ecfd2b9bfe/images/Edit%20Modal.jpg)
 
 ## Technologies Used
 
